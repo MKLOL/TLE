@@ -242,7 +242,7 @@ class UserDbConn:
             ):
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_config_v1 '
-                    '(guild_id, emoji, channel_id, color) VALUES (?,?,?)',
+                    '(guild_id, emoji, channel_id) VALUES (?,?,?)',
                     (guild_id, '\u2B50', channel_id)
                 )
                 self.conn.execute(
