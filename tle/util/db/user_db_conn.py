@@ -230,8 +230,8 @@ class UserDbConn:
             "SELECT name FROM sqlite_master WHERE type='table' AND name='starboard'"
         ).fetchone())
         migrated = self.conn.execute(
-            "SELECT COUNT(*) FROM starboard_config_v1"
-        ).fetchone()[0] > 0
+            "SELECT COUNT(*) AS cnt FROM starboard_config_v1"
+        ).fetchone().cnt > 0
 
         if old_exists and not migrated:
             # lift old ★ channel & threshold
