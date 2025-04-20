@@ -9,9 +9,10 @@ from tle import constants
 from tle.util import codeforces_common as cf_common
 from tle.util import discord_common
 
+_STAR_ORANGE = 0xffaa10
+
 class StarboardCogError(commands.CommandError):
     pass
-
 
 class Starboard(commands.Cog):
     def __init__(self, bot):
