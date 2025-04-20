@@ -24,6 +24,7 @@ class Starboard(commands.Cog):
             return
         emoji = str(payload.emoji)
         entry = cf_common.user_db.get_starboard_entry(guild_id, emoji)
+        print(emoji, entry, "WAWAWAWAWAW")
         if entry is None:
             return
         channel_id, threshold, color = entry
