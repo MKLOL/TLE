@@ -241,7 +241,7 @@ class UserDbConn:
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_config_v1 '
                     '(guild_id, emoji, channel_id, color) VALUES (?,?,?,?)',
-                    (guild_id, '\u2B50', channel_id, _DEFAULT_COLOR)
+                    (guild_id, '\u2B50', channel_id, constants._DEFAULT_COLOR)
                 )
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_emoji_v1 '
