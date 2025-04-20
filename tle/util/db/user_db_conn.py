@@ -237,9 +237,12 @@ class UserDbConn:
 
         if old_exists and not migrated:
             # lift old ★ channel & threshold
+            print ("MIGRATING MY BOIS")
             for guild_id, channel_id in self.conn.execute(
                     'SELECT guild_id, channel_id FROM starboard'
             ):
+                print(guild_id, channel_id)
+                print("HELLOOOO")
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_config_v1 '
                     '(guild_id, emoji, channel_id) VALUES (?,?,?)',
