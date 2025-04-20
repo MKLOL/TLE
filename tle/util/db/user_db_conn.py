@@ -246,12 +246,12 @@ class UserDbConn:
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_config_v1 '
                     '(guild_id, emoji, channel_id) VALUES (?,?,?)',
-                    (guild_id, '\u2B50', channel_id)
+                    (guild_id, constants._DEFAULT_STAR, channel_id)
                 )
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_emoji_v1 '
                     '(guild_id, emoji, threshold, color) VALUES (?,?,?,?)',
-                    (guild_id, '\u2B50', 5, constants._DEFAULT_COLOR)
+                    (guild_id, constants._DEFAULT_STAR, 5, constants._DEFAULT_COLOR)
                 )
 
             # lift old ★ messages
@@ -262,7 +262,7 @@ class UserDbConn:
                     'INSERT OR IGNORE INTO starboard_message_v1 '
                     '(original_msg_id, starboard_msg_id, guild_id, emoji) '
                     'VALUES (?,?,?,?)',
-                    (orig, star, guild_id, '\u2B50')
+                    (orig, star, guild_id, constants._DEFAULT_STAR)
                 )
             self.conn.commit()
     # Helper functions.
