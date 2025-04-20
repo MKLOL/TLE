@@ -102,9 +102,7 @@ class Starboard(commands.Cog):
     async def add(self, ctx, emoji: str, threshold: int, color: str = None):
         """Register an emoji with a reaction threshold and optional hex color."""
         clr = int(color, 16) if color else constants._DEFAULT_COLOR
-        cf_common.user_db.add_starboard_emoji(ctx.guild.id, emoji, threshold)
-        cf_common.user_db.set_starboard_channel(ctx.guild.id, emoji,
-                                                ctx.channel.id, clr)
+        cf_common.user_db.add_starboard_emoji(ctx.guild.id, emoji, threshold, clr)
         await ctx.send(embed=discord_common.embed_success(
             f'Added {emoji}: threshold={threshold}, color={hex(clr)}'))
 
@@ -118,21 +116,28 @@ class Starboard(commands.Cog):
 
     @starboard.command(brief='Edit threshold for an emoji')
     @commands.has_role(constants.TLE_ADMIN)
-    async def edit(self, ctx, emoji: str, threshold: int):
+    async def edit_threshold(self, ctx, emoji: str, threshold: int):
         """Update reaction threshold for an emoji."""
         cf_common.user_db.update_starboard_threshold(ctx.guild.id, emoji, threshold)
         await ctx.send(embed=discord_common.embed_success(
             f'Updated {emoji} threshold to {threshold}'))
 
+    @starboard.command(brief='Edit embed color for an emoji')
+    @commands.has_role(constants.TLE_ADMIN)
+    async def edit_color(self, ctx, emoji: str, color: str):
+        """Update embed color (hex) for an emoji."""
+        clr = int(color, 16)
+        cf_common.user_db.update_starboard_color(ctx.guild.id, emoji, clr)
+        await ctx.send(embed=discord_common.embed_success(
+            f'Updated {emoji} color to {hex(clr)}'))
+
     @starboard.command(brief='Set starboard channel (and optional color) for an emoji')
     @commands.has_role(constants.TLE_ADMIN)
-    async def here(self, ctx, emoji: str, color: str = None):
+    async def here(self, ctx, emoji: str,):
         """Set the channel and optional color for an emoji."""
-        clr = int(color, 16) if color else None
         cf_common.user_db.set_starboard_channel(ctx.guild.id,
                                                 emoji,
-                                                ctx.channel.id,
-                                                clr)
+                                                ctx.channel.id)
         msg = f'Set {emoji} channel to {ctx.channel.mention}'
         if clr:
             msg += f' with color {hex(clr)}'

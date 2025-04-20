@@ -199,22 +199,24 @@ class UserDbConn:
         ''')
 
         self.conn.execute(f'''
-           CREATE TABLE IF NOT EXISTS starboard_config_v1 (
-             guild_id   TEXT,
-             emoji      TEXT,
-             channel_id TEXT,
-             color      INTEGER DEFAULT {constants._DEFAULT_COLOR},
-             PRIMARY KEY (guild_id, emoji)
-           )
-         ''')
-        self.conn.execute('''
-           CREATE TABLE IF NOT EXISTS starboard_emoji_v1 (
-             guild_id   TEXT,
-             emoji      TEXT,
-             threshold  INTEGER,
-             PRIMARY KEY (guild_id, emoji)
-           )
-         ''')
+          CREATE TABLE IF NOT EXISTS starboard_config_v1 (
+            guild_id   TEXT,
+            emoji      TEXT,
+            channel_id TEXT,
+            PRIMARY KEY (guild_id, emoji)
+          )
+        ''')
+
+        # 1b) emoji holds threshold + color
+        self.conn.execute(f'''
+          CREATE TABLE IF NOT EXISTS starboard_emoji_v1 (
+            guild_id   TEXT,
+            emoji      TEXT,
+            threshold  INTEGER,
+            color      INTEGER,
+            PRIMARY KEY (guild_id, emoji)
+          )
+        ''')
         self.conn.execute('''
            CREATE TABLE IF NOT EXISTS starboard_message_v1 (
              original_msg_id  TEXT,
@@ -240,13 +242,13 @@ class UserDbConn:
             ):
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_config_v1 '
-                    '(guild_id, emoji, channel_id, color) VALUES (?,?,?,?)',
-                    (guild_id, '\u2B50', channel_id, constants._DEFAULT_COLOR)
+                    '(guild_id, emoji, channel_id, color) VALUES (?,?,?)',
+                    (guild_id, '\u2B50', channel_id)
                 )
                 self.conn.execute(
                     'INSERT OR IGNORE INTO starboard_emoji_v1 '
-                    '(guild_id, emoji, threshold) VALUES (?,?,?)',
-                    (guild_id, '\u2B50', 5)
+                    '(guild_id, emoji, threshold, color) VALUES (?,?,?,?)',
+                    (guild_id, '\u2B50', 5, constants._DEFAULT_COLOR)
                 )
 
             # lift old ★ messages
@@ -499,25 +501,23 @@ class UserDbConn:
         self.conn.commit()
 
     def get_starboard_entry(self, guild_id, emoji):
-        row = self.conn.execute(
-          'SELECT channel_id, color FROM starboard_config_v1 '
-          'WHERE guild_id = ? AND emoji = ?', (guild_id, emoji)
+        cfg = self.conn.execute(
+            'SELECT channel_id FROM starboard_config_v1 WHERE guild_id=? AND emoji=?',
+            (guild_id, emoji)
         ).fetchone()
-        if not row:
+        if not cfg:
             return None
-        thr = self.conn.execute(
-          'SELECT threshold FROM starboard_emoji_v1 '
-          'WHERE guild_id = ? AND emoji = ?', (guild_id, emoji)
+        emo = self.conn.execute(
+            'SELECT threshold, color FROM starboard_emoji_v1 WHERE guild_id=? AND emoji=?',
+            (guild_id, emoji)
         ).fetchone()
-        return (int(row[0]),
-                int(thr[0]),
-                int(row[1]))
+        return (int(cfg[0]), int(emo[0]), int(emo[1]))
 
-    def add_starboard_emoji(self, guild_id, emoji, threshold):
+    def add_starboard_emoji(self, guild_id, emoji, threshold, color):
         return self._insert_one(
           'starboard_emoji_v1',
-          ('guild_id','emoji','threshold'),
-          (guild_id, emoji, threshold)
+          ('guild_id','emoji','threshold', 'color'),
+          (guild_id, emoji, threshold, color)
         )
 
     def remove_starboard_emoji(self, guild_id, emoji):
@@ -530,28 +530,26 @@ class UserDbConn:
 
     def update_starboard_threshold(self, guild_id, emoji, threshold):
         rc = self.conn.execute(
-          'UPDATE starboard_emoji_v1 SET threshold = ? '
-          'WHERE guild_id = ? AND emoji = ?',
-          (threshold, guild_id, emoji)
+            'UPDATE starboard_emoji_v1 SET threshold=? WHERE guild_id=? AND emoji=?',
+            (threshold, guild_id, emoji)
         ).rowcount
         self.conn.commit()
         return rc
 
-    def set_starboard_channel(self, guild_id, emoji, channel_id, color=None):
-        if color is None:
-            # keep existing color if present
-            self.conn.execute(
-              'INSERT OR REPLACE INTO starboard_config_v1 '
-              '(guild_id, emoji, channel_id) VALUES (?,?,?)',
-              (guild_id, emoji, channel_id)
-            )
-        else:
-            self.conn.execute(
-              'INSERT OR REPLACE INTO starboard_config_v1 '
-              '(guild_id, emoji, channel_id, color) VALUES (?,?,?,?)',
-              (guild_id, emoji, channel_id, color)
-            )
+    def update_starboard_color(self, guild_id, emoji, color):
+        rc = self.conn.execute(
+            'UPDATE starboard_emoji_v1 SET color=? WHERE guild_id=? AND emoji=?',
+            (color, guild_id, emoji)
+        ).rowcount
         self.conn.commit()
+        return rc
+
+    def set_starboard_channel(self, guild_id, emoji, channel_id):
+        return self._insert_one(
+            'starboard_config_v1',
+            ('guild_id', 'emoji', 'channel_id'),
+            (guild_id, emoji, channel_id)
+        )
 
     def clear_starboard_channel(self, guild_id, emoji):
         rc = self.conn.execute(
