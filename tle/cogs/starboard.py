@@ -133,14 +133,12 @@ class Starboard(commands.Cog):
 
     @starboard.command(brief='Set starboard channel (and optional color) for an emoji')
     @commands.has_role(constants.TLE_ADMIN)
-    async def here(self, ctx, emoji: str,):
+    async def here(self, ctx, emoji: str):
         """Set the channel and optional color for an emoji."""
         cf_common.user_db.set_starboard_channel(ctx.guild.id,
                                                 emoji,
                                                 ctx.channel.id)
         msg = f'Set {emoji} channel to {ctx.channel.mention}'
-        if clr:
-            msg += f' with color {hex(clr)}'
         await ctx.send(embed=discord_common.embed_success(msg))
 
     @starboard.command(brief='Clear starboard channel for an emoji')
