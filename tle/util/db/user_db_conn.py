@@ -509,9 +509,9 @@ class UserDbConn:
           'SELECT threshold FROM starboard_emoji_v1 '
           'WHERE guild_id = ? AND emoji = ?', (guild_id, emoji)
         ).fetchone()
-        return (int(row.channel_id),
-                int(thr.threshold),
-                int(row.color))
+        return (int(row[0]),
+                int(thr[0]),
+                int(row[1]))
 
     def add_starboard_emoji(self, guild_id, emoji, threshold):
         return self._insert_one(
