@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from tle.util import codeforces_api as cf
 from tle.util import codeforces_common as cf_common
+from tle import constants
 
 _DEFAULT_VC_RATING = 1500
 
@@ -202,7 +203,7 @@ class UserDbConn:
              guild_id   TEXT,
              emoji      TEXT,
              channel_id TEXT,
-             color      INTEGER DEFAULT {_DEFAULT_COLOR},
+             color      INTEGER DEFAULT {constants._DEFAULT_COLOR},
              PRIMARY KEY (guild_id, emoji)
            )
          ''')

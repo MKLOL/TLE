@@ -8,8 +8,6 @@ from tle import constants
 from tle.util import codeforces_common as cf_common
 from tle.util import discord_common
 
-_DEFAULT_COLOR = 0xffaa10  # fallback if no color specified
-
 class StarboardCogError(commands.CommandError):
     pass
 
@@ -86,7 +84,7 @@ class Starboard(commands.Cog):
         async with lock:
             if cf_common.user_db.check_exists_starboard_message(message.id, emoji):
                 return
-            embed = self.prepare_embed(message, color or _DEFAULT_COLOR)
+            embed = self.prepare_embed(message, color or constants._DEFAULT_COLOR)
             star_msg = await starboard_channel.send(embed=embed)
             cf_common.user_db.add_starboard_message(message.id,
                                                     star_msg.id,
@@ -103,7 +101,7 @@ class Starboard(commands.Cog):
     @commands.has_role(constants.TLE_ADMIN)
     async def add(self, ctx, emoji: str, threshold: int, color: str = None):
         """Register an emoji with a reaction threshold and optional hex color."""
-        clr = int(color, 16) if color else _DEFAULT_COLOR
+        clr = int(color, 16) if color else constants._DEFAULT_COLOR
         cf_common.user_db.add_starboard_emoji(ctx.guild.id, emoji, threshold)
         cf_common.user_db.set_starboard_channel(ctx.guild.id, emoji,
                                                 ctx.channel.id, clr)
